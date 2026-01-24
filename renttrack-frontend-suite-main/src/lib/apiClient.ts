@@ -1,10 +1,19 @@
 // src/lib/apiClient.ts
 
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+/* =====================================================
+   BASE URL
+===================================================== */
+
+export const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+
+export const UPLOAD_BASE_URL =
+  import.meta.env.VITE_UPLOAD_BASE_URL || "http://localhost:8080";
 
 /* =====================================================
-   TOKEN STORAGE (SYNCED)
+   TOKEN STORAGE
 ===================================================== */
+
 let authToken: string | null = localStorage.getItem("renttrack_token");
 
 function setToken(token: string) {
@@ -20,45 +29,56 @@ function clearToken() {
 /* =====================================================
    COMMON FETCH HELPER
 ===================================================== */
-// apiClient.ts
 export async function fetchJson<T>(
   url: string,
-  options?: RequestInit
+  options: RequestInit = {}
 ): Promise<T> {
   const res = await fetch(`${BASE_URL}${url}`, {
-    credentials: "include",
     headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      ...(options.body instanceof FormData
+        ? {}
+        : { "Content-Type": "application/json" }),
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      ...(options.headers || {}),
     },
     ...options,
   });
 
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) {
+    let message = `HTTP ${res.status}`;
+    try {
+      const data = await res.json();
+      message = data.message || data.error || message;
+    } catch {}
+    throw new Error(message);
+  }
+
   return res.json();
 }
-
 
 /* =====================================================
    API CLIENT
 ===================================================== */
+
 const apiClient = {
-  /* -------- TOKEN HELPERS -------- */
+  /* ======================
+     TOKEN
+  ====================== */
   setToken,
   clearToken,
 
   /* ======================
      AUTH
   ====================== */
-  async login(email: string, password: string) {
+
+  login(email: string, password: string) {
     return fetchJson("/auth/login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
   },
 
-  async register(data: {
+  register(data: {
     name: string;
     email: string;
     password: string;
@@ -66,42 +86,43 @@ const apiClient = {
   }) {
     return fetchJson("/auth/register", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
   },
 
-  async getMe() {
+  getMe() {
     return fetchJson("/auth/me");
   },
 
-  async getMyLease() {
+  getMyLease() {
     return fetchJson("/lease/me");
   },
 
   /* ======================
      DASHBOARD
   ====================== */
-  async getDashboardStats() {
+
+  getDashboardStats() {
     return fetchJson("/dashboard/stats");
   },
 
-  async getRecentActivity() {
+  getRecentActivity() {
     return fetchJson("/dashboard/activity");
   },
 
   /* ======================
      TENANTS
   ====================== */
-  async getTenants() {
+
+  getTenants() {
     return fetchJson("/tenants");
   },
 
-  async getTenant(id: string) {
+  getTenant(id: string) {
     return fetchJson(`/tenants/${id}`);
   },
 
-  async createTenant(data: {
+  createTenant(data: {
     firstName: string;
     lastName: string;
     email: string;
@@ -116,27 +137,29 @@ const apiClient = {
   }) {
     return fetchJson("/tenants", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
   },
 
-  async deleteTenant(id: string) {
-    return fetchJson(`/tenants/${id}`, { method: "DELETE" });
+  deleteTenant(id: string) {
+    return fetchJson(`/tenants/${id}`, {
+      method: "DELETE",
+    });
   },
 
   /* ======================
      PROPERTIES
   ====================== */
-  async getProperties() {
+
+  getProperties() {
     return fetchJson("/properties");
   },
 
-  async getPropertyById(id: string) {
+  getPropertyById(id: string) {
     return fetchJson(`/properties/${id}`);
   },
 
-  async createProperty(data: {
+  createProperty(data: {
     title: string;
     address: string;
     bhk: number;
@@ -147,12 +170,11 @@ const apiClient = {
   }) {
     return fetchJson("/properties", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
   },
 
-  async updateProperty(
+  updateProperty(
     id: string,
     data: {
       title: string;
@@ -166,31 +188,33 @@ const apiClient = {
   ) {
     return fetchJson(`/properties/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
   },
 
-  async deleteProperty(id: string) {
-    return fetchJson(`/properties/${id}`, { method: "DELETE" });
+  deleteProperty(id: string) {
+    return fetchJson(`/properties/${id}`, {
+      method: "DELETE",
+    });
   },
 
   /* ======================
-     PAYMENTS (EXISTING)
+     PAYMENTS
   ====================== */
-  async getPayments() {
-    return fetchJson("/payments"); // LANDLORD
+
+  getPayments() {
+    return fetchJson("/payments");
   },
 
-  async getMyPayments() {
-    return fetchJson("/payments/me"); // TENANT
+  getMyPayments() {
+    return fetchJson("/payments/me");
   },
 
-  async getTenantPayments(tenantId: string) {
+  getTenantPayments(tenantId: string) {
     return fetchJson(`/payments/tenant/${tenantId}`);
   },
 
-  async markPaymentPaid(
+  markPaymentPaid(
     id: string,
     data: {
       paidDate: string;
@@ -200,12 +224,11 @@ const apiClient = {
   ) {
     return fetchJson(`/payments/${id}/mark-paid`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
   },
 
-  async recordManualPayment(data: {
+  recordManualPayment(data: {
     tenantId: string;
     month: string;
     dueDate: string;
@@ -215,93 +238,65 @@ const apiClient = {
   }) {
     return fetchJson("/payments/record-manual", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
   },
 
- /* ======================
-   DOCUMENT UPLOAD
-====================== */
-async uploadDocument(file: File) {
-  const formData = new FormData();
-  formData.append("file", file);
+  /* ======================
+     FILE UPLOADS
+  ====================== */
 
-  const res = await fetch(`${API_BASE_URL}/uploads`, {
-    method: "POST",
-    headers: {
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-      // ❗ DO NOT set Content-Type for FormData
-    },
-    body: formData,
-  });
+  async uploadDocument(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
 
-  if (!res.ok) {
-    let errorMessage = `HTTP ${res.status}`;
-    try {
-      const data = await res.json();
-      errorMessage = data.message || data.error || errorMessage;
-    } catch {}
-    throw new Error(errorMessage);
-  }
+    const res = await fetch(`${UPLOAD_BASE_URL}/uploads`, {
+      method: "POST",
+      headers: authToken
+        ? { Authorization: `Bearer ${authToken}` }
+        : undefined,
+      body: formData,
+    });
 
-  // ✅ Must return UploadDTO
-  return res.json(); // { id, filename, status, ... }
-},
+    if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
 
-/* ======================
-   PROPERTY IMAGE UPLOAD
-====================== */
-async uploadPropertyImage(file: File): Promise<string> {
-  const formData = new FormData();
-  formData.append("file", file);
+    return res.json();
+  },
 
-  const res = await fetch(`${API_BASE_URL}/uploads/property`, {
-    method: "POST",
-    headers: {
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-    },
-    body: formData,
-  });
+  async uploadPropertyImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
 
-  if (!res.ok) {
-    let errorMessage = `HTTP ${res.status}`;
-    try {
-      const data = await res.json();
-      errorMessage = data.message || data.error || errorMessage;
-    } catch {}
-    throw new Error(errorMessage);
-  }
+    const res = await fetch(`${UPLOAD_BASE_URL}/uploads/property`, {
+      method: "POST",
+      headers: authToken
+        ? { Authorization: `Bearer ${authToken}` }
+        : undefined,
+      body: formData,
+    });
 
-  const data = await res.json();
+    if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
 
-  // backend returns: { url: "/uploads/property/xyz.jpg" }
-  return data.url;
-},
+    const data = await res.json();
+    return data.url;
+  },
 
-/* ======================
-   OCR / UPLOADS
-====================== */
-async getUploadParsed(uploadId: string) {
-  return fetchJson(`/uploads/${uploadId}/parsed`);
-},
+  getUploadParsed(uploadId: string) {
+    return fetchJson(`/uploads/${uploadId}/parsed`);
+  },
 
+  /* ======================
+     RAZORPAY
+  ====================== */
 
-  /* =====================================================
-     🔥 REAL PAYMENTS (RAZORPAY)
-  ===================================================== */
-
-  // 1️⃣ Create Razorpay Order
-  async createRazorpayOrder(paymentId: string) {
+  createRazorpayOrder(paymentId: string) {
     return fetchJson("/payments/razorpay/order", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ paymentId }),
     });
   },
 
-  // 2️⃣ Verify Razorpay Payment
-  async verifyRazorpayPayment(data: {
+  verifyRazorpayPayment(data: {
     paymentId: string;
     razorpayOrderId: string;
     razorpayPaymentId: string;
@@ -309,22 +304,20 @@ async getUploadParsed(uploadId: string) {
   }) {
     return fetchJson("/payments/razorpay/verify", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
   },
 
-  /* =====================================================
-     🌍 STRIPE (OPTIONAL – INTERNATIONAL)
-  ===================================================== */
-  async createStripeIntent(paymentId: string) {
+  /* ======================
+     STRIPE
+  ====================== */
+
+  createStripeIntent(paymentId: string) {
     return fetchJson("/payments/stripe/intent", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ paymentId }),
     });
   },
 };
 
 export default apiClient;
-

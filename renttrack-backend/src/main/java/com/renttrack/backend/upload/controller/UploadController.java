@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/uploads")
+@RequestMapping("/uploads")
 @RequiredArgsConstructor
 @CrossOrigin
 public class UploadController {
@@ -16,8 +16,10 @@ public class UploadController {
     private final FileStorageService storage;
 
     @PostMapping("/property")
-    public Map<String, String> upload(@RequestParam MultipartFile file) {
-        String path = storage.store(file);
-        return Map.of("url", path);
+    public Map<String, String> uploadProperty(
+            @RequestParam("file") MultipartFile file
+    ) {
+        String url = storage.store(file);
+        return Map.of("url", url);
     }
 }

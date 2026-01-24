@@ -1,15 +1,14 @@
 package com.renttrack.backend.auth.controller;
 
-import com.renttrack.backend.auth.dto.AuthResponse;
-import com.renttrack.backend.auth.dto.ForgotPasswordRequest;
-import com.renttrack.backend.auth.dto.LoginRequest;
-import com.renttrack.backend.auth.dto.RegisterRequest;
+import com.renttrack.backend.auth.dto.*;
 import com.renttrack.backend.auth.service.AuthService;
 import com.renttrack.backend.user.entity.User;
 import com.renttrack.backend.user.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.Authentication;   // ✅ REQUIRED
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -21,37 +20,42 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
-    private  final UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
-        try {
-            authService.register(req);
-            return ResponseEntity.ok(
-                    Map.of("message", "Registration successful")
-            );
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<?> register(
+            @RequestBody RegisterRequest req
+    ) {
+        authService.register(req);
+        return ResponseEntity.ok(
+                Map.of("message", "Registration successful")
+        );
     }
-
-    @GetMapping("/me")
-    public User me(Authentication auth) {
-        return userRepository.findByEmail(auth.getName()).orElseThrow();
-    }
-
-
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody LoginRequest req){
+    public AuthResponse login(
+            @RequestBody LoginRequest req
+    ) {
         return authService.login(req);
+    }
 
+    // ✅ FIXED
+    @GetMapping("/me")
+    public User me(Authentication authentication) {
+
+        if (authentication == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        return userRepository
+                .findByEmail(authentication.getName())
+                .orElseThrow();
     }
 
     @PostMapping("/forgot-password")
-    public void forgotPassword(@RequestBody ForgotPasswordRequest req){
+    public void forgotPassword(
+            @RequestBody ForgotPasswordRequest req
+    ) {
         authService.forgotPassword(req.getEmail());
     }
 }

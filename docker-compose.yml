@@ -1,0 +1,109 @@
+version: "3.9"
+
+services:
+
+  # ============================================================
+  # POSTGRES DATABASE
+  # ============================================================
+  postgres:
+    image: postgres:15
+    container_name: renttrack-postgres
+    restart: always
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      # ✅ persistent database storage
+      - postgres_data:/var/lib/postgresql/data
+
+    networks:
+      - renttrack-net
+
+
+  # ============================================================
+  # SPRING BOOT BACKEND
+  # ============================================================
+  backend:
+    build:
+      context: ./renttrack-backend
+      dockerfile: Dockerfile
+
+    container_name: renttrack-backend
+    restart: always
+
+    depends_on:
+      - postgres
+
+    env_file:
+      - .env
+
+    environment:
+      # ✅ Spring Boot PostgreSQL connection
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      # ✅ image upload persistence
+      - uploads_data:/app/uploads
+
+    networks:
+      - renttrack-net
+
+
+  # ============================================================
+  # REACT FRONTEND (NGINX)
+  # ============================================================
+  frontend:
+    build:
+      context: ./renttrack-frontend-suite-main
+      dockerfile: Dockerfile
+
+    container_name: renttrack-frontend
+    restart: always
+
+    depends_on:
+      - backend
+
+    ports:
+      # browser → nginx
+      - "5173:80"
+
+    environment:
+      # optional if needed
+      - NODE_ENV=production
+
+    networks:
+      - renttrack-net
+
+
+# ============================================================
+# VOLUMES
+# ============================================================
+volumes:
+
+  # PostgreSQL data
+  postgres_data:
+
+  # Uploaded images
+  uploads_data:
+
+
+# ============================================================
+# NETWORK
+# ============================================================
+networks:
+  renttrack-net:
+    driver: bridge

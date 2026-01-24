@@ -6,11 +6,20 @@ import apiClient from "@/lib/apiClient";
 export type Role = "LANDLORD" | "TENANT";
 
 export type User = {
-  id?: string;
+  id: string;
   email: string;
   name: string;
   role: Role;
 };
+
+/* ===== Backend response types ===== */
+
+type LoginResponse = {
+  token: string;
+  user: User;
+};
+
+type MeResponse = User;
 
 type AuthContextType = {
   user: User | null;
@@ -43,12 +52,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   /* =====================================================
-     RESTORE SESSION ON PAGE REFRESH
+     RESTORE LOGIN ON PAGE REFRESH
   ===================================================== */
+
   useEffect(() => {
     const savedToken = localStorage.getItem("renttrack_token");
+    const savedUser = localStorage.getItem("renttrack_user");
 
-    if (!savedToken) {
+    if (!savedToken || !savedUser) {
       setLoading(false);
       return;
     }
@@ -58,19 +69,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     apiClient
       .getMe()
-      .then((me) => {
-        const restoredUser: User = {
-          id: me.id,
-          email: me.email,
-          name: me.name,
-          role: me.role,
-        };
-
-        setUser(restoredUser);
-        localStorage.setItem(
-          "renttrack_user",
-          JSON.stringify(restoredUser)
-        );
+      .then((me: MeResponse) => {
+        setUser(me);
+        localStorage.setItem("renttrack_user", JSON.stringify(me));
       })
       .catch(() => {
         localStorage.clear();
@@ -78,14 +79,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setToken(null);
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   }, []);
 
   /* =====================================================
      LOGIN
   ===================================================== */
+
   const login = async ({
     email,
     password,
@@ -93,43 +93,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string;
     password: string;
   }) => {
-    const res = await apiClient.login(email, password);
-
-    /*
-      Backend response MUST be:
-      {
-        token: "...",
-        user: {
-          id,
-          name,
-          email,
-          role
-        }
-      }
-    */
-
-    const loggedUser: User = {
-      id: res.user.id,
-      email: res.user.email,
-      name: res.user.name,
-      role: res.user.role,
-    };
-
-    localStorage.setItem("renttrack_token", res.token);
-    localStorage.setItem(
-      "renttrack_user",
-      JSON.stringify(loggedUser)
-    );
+    const res = (await apiClient.login(
+      email,
+      password
+    )) as LoginResponse;
 
     apiClient.setToken(res.token);
 
+    localStorage.setItem("renttrack_token", res.token);
+    localStorage.setItem("renttrack_user", JSON.stringify(res.user));
+
     setToken(res.token);
-    setUser(loggedUser);
+    setUser(res.user);
   };
 
   /* =====================================================
      REGISTER
   ===================================================== */
+
   const register = async (data: {
     name: string;
     email: string;
@@ -137,13 +118,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     role: Role;
   }) => {
     await apiClient.register(data);
-    // ⛔ registration does NOT auto-login
-    // login page handles redirect
   };
 
   /* =====================================================
      LOGOUT
   ===================================================== */
+
   const logout = () => {
     localStorage.clear();
     apiClient.clearToken();
@@ -154,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /* =====================================================
      ROLE HELPERS
   ===================================================== */
+
   const isAuthenticated = !!user;
   const isLandlord = user?.role === "LANDLORD";
   const isTenant = user?.role === "TENANT";
@@ -181,8 +162,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
+
   if (!ctx) {
     throw new Error("useAuth must be used inside AuthProvider");
   }
+
   return ctx;
 }

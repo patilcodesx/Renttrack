@@ -18,9 +18,11 @@ public class CorsConfig {
 
         config.setAllowCredentials(true);
 
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000"
-        ));
+      config.setAllowedOrigins(List.of(
+        "http://localhost:3000",
+        "http://localhost:5173"
+));
+
 
         config.setAllowedHeaders(List.of(
                 "Authorization",

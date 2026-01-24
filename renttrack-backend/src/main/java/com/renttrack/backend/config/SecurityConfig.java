@@ -18,55 +18,79 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    /* ======================
+       PASSWORD ENCODER
+    ====================== */
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /* ======================
+       AUTHENTICATION MANAGER
+    ====================== */
     @Bean
     public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config
+            AuthenticationConfiguration configuration
     ) throws Exception {
-        return config.getAuthenticationManager();
+        return configuration.getAuthenticationManager();
     }
 
+    /* ======================
+       SECURITY FILTER CHAIN
+    ====================== */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
 
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                .sessionManagement(sm ->
-                        sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
 
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/api/uploads/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
+            .authorizeHttpRequests(auth -> auth
 
-                // ✅ THIS LINE IS MANDATORY
-                .addFilterBefore(
-                        jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                );
+    // ✅ PUBLIC ENDPOINTS
+    .requestMatchers(
+            "/api/auth/**",
+
+            // image access
+            "/uploads/**",
+            "/api/uploads/**",
+
+            // property APIs
+            "/api/properties/**"
+    ).permitAll()
+
+    // 🔐 everything else needs JWT
+    .anyRequest().authenticated()
+)
+
+
+            .addFilterBefore(
+                    jwtAuthenticationFilter,
+                    UsernamePasswordAuthenticationFilter.class
+            );
 
         return http.build();
     }
 
-    // ✅ REQUIRED CORS CONFIGURATION
+    /* ======================
+       CORS CONFIGURATION
+    ====================== */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
                 "http://localhost:3000"
         ));
 
@@ -75,12 +99,8 @@ public class SecurityConfig {
         ));
 
         config.setAllowedHeaders(List.of("*"));
-
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
-
-        config.setExposedHeaders(List.of(
-                "Authorization"
-        ));
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();

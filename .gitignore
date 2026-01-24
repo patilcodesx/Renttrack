@@ -1,0 +1,25 @@
+# ===== ENV =====
+.env
+.env.*
+
+# ===== JAVA =====
+target/
+*.log
+
+# ===== NODE =====
+node_modules/
+dist/
+
+# ===== DOCKER =====
+postgres_data/
+uploads/
+*.volume
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== IDE =====
+.idea/
+.vscode/
+*.iml

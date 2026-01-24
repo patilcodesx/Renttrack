@@ -9,7 +9,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
-        registry.addResourceHandler("/api/uploads/**")
-                .addResourceLocations("file:uploads/");
+        registry
+            // URL exposed to browser
+            .addResourceHandler("/uploads/**")
+
+            // Physical folder inside docker container
+            .addResourceLocations("file:/app/uploads/");
     }
 }
+
+

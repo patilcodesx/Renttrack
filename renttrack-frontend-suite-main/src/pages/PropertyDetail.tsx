@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchJson } from "@/lib/apiClient";
+import { getImageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 
 type Property = {
@@ -28,9 +29,7 @@ export default function PropertyDetail() {
 
     async function load() {
       try {
-        const data = await fetchJson<Property>(
-          `/api/properties/${id}`
-        );
+        const data = await fetchJson<Property>(`/properties/${id}`);
         setProperty(data);
       } catch (err) {
         console.error("Property load failed", err);
@@ -42,9 +41,7 @@ export default function PropertyDetail() {
     load();
   }, [id]);
 
-  if (loading) {
-    return <div className="p-6">Loading...</div>;
-  }
+  if (loading) return <div className="p-6">Loading...</div>;
 
   if (!property) {
     return (
@@ -58,21 +55,29 @@ export default function PropertyDetail() {
   return (
     <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-      {/* LEFT — IMAGE */}
+      {/* LEFT — IMAGES */}
       <div className="lg:col-span-2">
         <img
-          src={property.images?.[0]}
+          src={getImageUrl(property.images?.[0])}
           className="w-full h-[420px] object-cover rounded-xl"
+          onError={(e) => {
+            e.currentTarget.src = "/placeholder.png";
+          }}
         />
 
         <div className="grid grid-cols-4 gap-3 mt-4">
-          {property.images?.map((img) => (
-            <img
-              key={img}
-              src={img}
-              className="h-24 w-full object-cover rounded-lg cursor-pointer"
-            />
-          ))}
+          {property.images
+            ?.filter(Boolean)
+            .map((img) => (
+              <img
+                key={img}
+                src={getImageUrl(img)}
+                className="h-24 w-full object-cover rounded-lg cursor-pointer"
+                onError={(e) => {
+                  e.currentTarget.src = "/placeholder.png";
+                }}
+              />
+            ))}
         </div>
       </div>
 
