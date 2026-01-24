@@ -1,0 +1,28 @@
+cd "D:\Project 2026 (2)\renttrack-backend"
+
+Get-ChildItem -Recurse -Include *.java,*.xml,*.properties,*.yml |
+Where-Object { $_.FullName -notmatch "target|node_modules|\.git" } |
+ForEach-Object {
+  "===== FILE: $($_.FullName) ====="
+  Get-Content $_.FullName
+  "`n"
+} | Out-File backend_all_code.txt -Encoding UTF8
+
+
+
+
+
+
+
+
+
+
+cd "D:\Project 2026 (2)\renttrack-dashboard-main"
+
+Get-ChildItem -Recurse -Include *.ts,*.tsx,*.js,*.jsx |
+Where-Object { $_.FullName -notmatch "node_modules|dist|\.git" } |
+ForEach-Object {
+  "===== FILE: $($_.FullName) ====="
+  Get-Content $_.FullName
+  "`n"
+} | Out-File frontend_all_code.txt -Encoding UTF8

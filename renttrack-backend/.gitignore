@@ -1,0 +1,92 @@
+####################################
+# Spring Boot
+####################################
+HELP.md
+
+####################################
+# Maven
+####################################
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# allow target inside src (rare case)
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+####################################
+# Logs
+####################################
+*.log
+logs/
+
+####################################
+# Environment / Secrets
+####################################
+.env
+.env.*
+application-dev.yml
+application-prod.yml
+application-test.yml
+
+####################################
+# ================================
+# IDE FILES
+# ================================
+####################################
+
+### STS (Spring Tool Suite)
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+# allow build inside src if needed
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code
+.vscode/
+
+####################################
+# Java
+####################################
+*.class
+
+####################################
+# Test & Coverage
+####################################
+*.exec
+coverage/
+jacoco/
+jacoco.exec
+
+####################################
+# OS
+####################################
+.DS_Store
+Thumbs.db
+desktop.ini
+
+####################################
+# Temporary files
+####################################
+*.swp
+*.tmp
+*.bak
