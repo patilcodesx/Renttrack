@@ -20,7 +20,7 @@ import apiClient from "@/lib/apiClient";
 /* =====================================================
    CONFIG
 ===================================================== */
-const BACKEND_URL = "http://localhost:8080/api";
+const BACKEND_URL = "https://renttrack-backend-production.up.railway.app/api";
 
 /* =====================================================
    TYPES

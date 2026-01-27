@@ -29,13 +29,13 @@ export function PropertyCard({
   /* =====================================================
      ✅ IMAGE URL (CONTEXT-PATH SAFE)
      Backend stores: /uploads/property/xyz.jpg
-     Actual served URL: http://localhost:8080/api/uploads/property/xyz.jpg
+     Actual served URL: https://renttrack-backend-production.up.railway.app/api/uploads/property/xyz.jpg
   ===================================================== */
 const imageUrl =
   images && images.length > 0
     ? images[0].startsWith("http")
       ? images[0]
-      : `http://localhost:8080${images[0]}`
+      : `https://renttrack-backend-production.up.railway.app${images[0]}`
     : "https://via.placeholder.com/600x400?text=No+Image";
 
 

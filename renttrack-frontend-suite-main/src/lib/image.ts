@@ -1,5 +1,5 @@
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+  import.meta.env.VITE_API_BASE_URL || "https://renttrack-backend-production.up.railway.app/api";
 
 // remove /api
 export const BACKEND_URL = API_BASE.replace("/api", "");
@@ -11,6 +11,6 @@ export function getImageUrl(path?: string) {
 
   if (path.startsWith("http")) return path;
 
-  return `http://localhost:8080${path}`;
+  return `https://renttrack-backend-production.up.railway.app${path}`;
 }
 
