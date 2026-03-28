@@ -12,26 +12,21 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.*;
-
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    /* ======================
-       PASSWORD ENCODER
-    ====================== */
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /* ======================
-       AUTHENTICATION MANAGER
-    ====================== */
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration
@@ -39,9 +34,6 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
-    /* ======================
-       SECURITY FILTER CHAIN
-    ====================== */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
@@ -49,30 +41,54 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-
             .authorizeHttpRequests(auth -> auth
 
-    // ✅ PUBLIC ENDPOINTS
+    // 🌍 PUBLIC
     .requestMatchers(
             "/api/auth/**",
-
-            // image access
-            "/uploads/**",
-            "/api/uploads/**",
-
-            // property APIs
-            "/api/properties/**"
+"/uploads/**",
+"/api/uploads/**",
+"/api/payments/webhook"
     ).permitAll()
 
-    // 🔐 everything else needs JWT
+    // 🏢 PROPERTIES
+    .requestMatchers("/api/properties/**")
+        .hasAnyRole("ADMIN", "LANDLORD")
+
+    // 👥 TENANTS
+    .requestMatchers("/api/tenants/**")
+        .hasAnyRole("ADMIN", "LANDLORD")
+
+    // 💰 PAYMENT ORDER CREATION
+    .requestMatchers("/api/payments/create-order")
+        .hasRole("TENANT")
+
+    // 💳 PAYMENTS
+    .requestMatchers("/api/payments/**")
+        .hasAnyRole("ADMIN", "LANDLORD", "TENANT")
+
+    // 📊 DASHBOARD
+    .requestMatchers("/api/dashboard/**")
+        .hasAnyRole("ADMIN", "LANDLORD")
+
+    // 📄 LEASE
+    .requestMatchers("/api/lease/me")
+        .hasRole("TENANT")
+
+    // 🔍 OCR
+    .requestMatchers("/api/ocr/**")
+        .authenticated()
+
+    // 👤 USERS
+    .requestMatchers("/api/users/**")
+        .hasRole("ADMIN")
+
+    // 🔐 Everything else
     .anyRequest().authenticated()
 )
-
-
             .addFilterBefore(
                     jwtAuthenticationFilter,
                     UsernamePasswordAuthenticationFilter.class
@@ -81,9 +97,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /* ======================
-       CORS CONFIGURATION
-    ====================== */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
@@ -95,7 +108,7 @@ public class SecurityConfig {
         ));
 
         config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
         ));
 
         config.setAllowedHeaders(List.of("*"));

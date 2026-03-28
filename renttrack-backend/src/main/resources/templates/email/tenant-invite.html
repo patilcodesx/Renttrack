@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Welcome to RentTrack</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0"
+               style="background:#ffffff;border-radius:12px;overflow:hidden;
+                      box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#0d9488;padding:32px 40px;text-align:center;">
+              <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:700;">
+                🏠 RentTrack
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+
+              <h2 style="color:#111827;font-size:20px;margin:0 0 12px;">
+                Welcome, <span th:text="${name}">Tenant</span>! 👋
+              </h2>
+
+              <p style="color:#4b5563;font-size:15px;line-height:1.6;margin:0 0 20px;">
+                Your landlord has added you to <strong>RentTrack</strong> — a platform to
+                manage your lease, view payment history, and pay rent online.
+              </p>
+
+              <p style="color:#4b5563;font-size:15px;line-height:1.6;margin:0 0 28px;">
+                Click the button below to set your password and access your account.
+                This link is valid for <strong>7 days</strong>.
+              </p>
+
+              <!-- CTA Button -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding:0 0 28px;">
+                    <a th:href="${link}"
+                       style="display:inline-block;background:#0d9488;color:#ffffff;
+                              text-decoration:none;padding:14px 36px;border-radius:8px;
+                              font-size:16px;font-weight:600;">
+                      Set My Password →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Fallback link -->
+              <p style="color:#9ca3af;font-size:13px;line-height:1.6;
+                        border-top:1px solid #f3f4f6;padding-top:20px;margin:0;">
+                If the button doesn't work, copy this link into your browser:<br/>
+                <a th:href="${link}" th:text="${link}"
+                   style="color:#0d9488;word-break:break-all;"></a>
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb;padding:20px 40px;text-align:center;
+                       border-top:1px solid #f3f4f6;">
+              <p style="color:#9ca3af;font-size:12px;margin:0;">
+                You received this email because your landlord added you to RentTrack.<br/>
+                If this was a mistake, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

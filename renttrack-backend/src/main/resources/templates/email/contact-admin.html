@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 30px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .header { background: #1E40AF; color: white; padding: 30px; text-align: center; }
+    .header h1 { margin: 0; font-size: 22px; }
+    .body { padding: 30px; color: #333; }
+    .message-box { background: #F1F5F9; border-left: 4px solid #1E40AF; padding: 16px 20px; margin: 20px 0; border-radius: 4px; white-space: pre-wrap; }
+    .footer { background: #f4f4f4; padding: 20px; text-align: center; color: #888; font-size: 12px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📬 New Contact Request</h1>
+  </div>
+  <div class="body">
+    <p>You received a new message via RentTrack:</p>
+    <p><strong>From:</strong> <span th:text="${fromEmail}">user@example.com</span></p>
+    <div class="message-box" th:text="${message}">Message content here</div>
+  </div>
+  <div class="footer">
+    <p>© <span th:text="${appName}">RentTrack</span></p>
+  </div>
+</div>
+</body>
+</html>

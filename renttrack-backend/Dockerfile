@@ -2,34 +2,26 @@
 # BUILD STAGE
 # ===============================
 FROM maven:3.9.9-eclipse-temurin-17 AS build
-
 WORKDIR /app
-
-# copy pom first for dependency caching
 COPY pom.xml .
-
-# download dependencies (faster CI builds)
 RUN mvn dependency:go-offline
-
-# copy source code
 COPY src ./src
-
-# build jar
 RUN mvn clean package -DskipTests
 
+# ===============================
+# RUNTIME STAGE (Ubuntu - full Tesseract support)
+# ===============================
+FROM eclipse-temurin:17-jdk-jammy
 
-# ===============================
-# RUNTIME STAGE
-# ===============================
-FROM eclipse-temurin:17-jdk-alpine
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+RUN mkdir -p /app/uploads/property /app/uploads/ocr
 
-# copy jar from build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# expose spring boot port
 EXPOSE 8080
-
-# recommended JVM flags for docker
 ENTRYPOINT ["java","-XX:+UseContainerSupport","-jar","app.jar"]

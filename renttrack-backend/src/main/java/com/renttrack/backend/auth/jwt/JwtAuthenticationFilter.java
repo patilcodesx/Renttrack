@@ -21,23 +21,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
-    @Override
+  // ✅ CORRECT
+@Override
 protected boolean shouldNotFilter(HttpServletRequest request) {
-
     String path = request.getServletPath();
 
     return
             path.equals("/api/auth/login") ||
             path.equals("/api/auth/register") ||
             path.equals("/api/auth/forgot-password") ||
-
-            // public images
             path.startsWith("/uploads/") ||
-
-            // public listings
-            path.startsWith("/api/properties/");
+            path.startsWith("/api/uploads/");
 }
-
 
     @Override
     protected void doFilterInternal(
@@ -46,8 +41,7 @@ protected boolean shouldNotFilter(HttpServletRequest request) {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        final String header =
-                request.getHeader("Authorization");
+        final String header = request.getHeader("Authorization");
 
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);

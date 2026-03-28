@@ -2,7 +2,7 @@ package com.renttrack.backend.property.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
+import com.renttrack.backend.user.entity.User;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +23,10 @@ public class Property {
     private String address;
     private int bhk;
     private double price;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "landlord_id")
+private User landlord;
 
     @Builder.Default
     private boolean available = true;

@@ -1,7 +1,7 @@
 package com.renttrack.backend.property.controller;
 
 import com.renttrack.backend.property.dto.PropertyRequest;
-import com.renttrack.backend.property.entity.Property;
+import com.renttrack.backend.property.dto.PropertyResponse;
 import com.renttrack.backend.property.service.PropertyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -18,27 +18,26 @@ public class PropertyController {
     private final PropertyService service;
 
     @PostMapping
-    public Property create(@RequestBody PropertyRequest req) {
-        return service.create(req);
+    public PropertyResponse create(@RequestBody PropertyRequest req) {
+        return PropertyService.toResponse(service.create(req));
     }
 
     @GetMapping
-    public List<Property> getAll() {
-        return service.findAll();
-    }
+public List<PropertyResponse> getAll() {
+    return service.findAll(); // service now returns List<PropertyResponse>
+}
 
-    // ✅ SINGLE PROPERTY DETAILS
     @GetMapping("/{id}")
-    public Property getById(@PathVariable UUID id) {
-        return service.findById(id);
+    public PropertyResponse getById(@PathVariable UUID id) {
+        return PropertyService.toResponse(service.findById(id));
     }
 
     @PutMapping("/{id}")
-    public Property update(
+    public PropertyResponse update(
             @PathVariable UUID id,
             @RequestBody PropertyRequest req
     ) {
-        return service.update(id, req);
+        return PropertyService.toResponse(service.update(id, req));
     }
 
     @DeleteMapping("/{id}")

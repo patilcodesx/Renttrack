@@ -1,21 +1,17 @@
 package com.renttrack.backend.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-
+        // Serve uploaded files (property images + OCR docs)
         registry
-            // URL exposed to browser
-            .addResourceHandler("/uploads/**")
-
-            // Physical folder inside docker container
-            .addResourceLocations("file:/app/uploads/");
+                .addResourceHandler("/uploads/**")
+                .addResourceLocations("file:/app/uploads/");
     }
 }
-
-
